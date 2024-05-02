@@ -1,0 +1,7 @@
+[gd_resource type="AtlasTexture" load_steps=2 format=3 uid="uid://bpwdp8drnspu4"]
+
+[ext_resource type="Texture2D" uid="uid://oyj4g8ilffso" path="res://Art/SelfSkin/Mystia.png" id="1_j64hk"]
+
+[resource]
+atlas = ExtResource("1_j64hk")
+region = Rect2(64, 192, 64, 64)

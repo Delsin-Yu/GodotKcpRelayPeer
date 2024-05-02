@@ -1,0 +1,45 @@
+[gd_scene load_steps=6 format=3 uid="uid://cpct08y321qf3"]
+
+[ext_resource type="Script" path="res://Scripts/PlayerController.cs" id="1_21021"]
+[ext_resource type="SpriteFrames" uid="uid://cffiaf3qp2rr2" path="res://Animation/SelfSpriteFrames.tres" id="2_m6i3m"]
+[ext_resource type="SpriteFrames" uid="uid://eal07vfr7tmy" path="res://Animation/OtherSpriteFrames.tres" id="2_r4k33"]
+[ext_resource type="Texture2D" uid="uid://bebksqe8o7s5l" path="res://Art/Shadow.png" id="4_kn7y2"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cirwg"]
+radius = 0.01
+
+[node name="CharacterBody2D" type="CharacterBody2D" node_paths=PackedStringArray("_animatedSprite", "_youIndicator")]
+collision_layer = 0
+motion_mode = 1
+script = ExtResource("1_21021")
+_animatedSprite = NodePath("Visual")
+_speed = 100.0
+_selfSpriteFrames = ExtResource("2_m6i3m")
+_otherSpriteFrames = ExtResource("2_r4k33")
+_youIndicator = NodePath("Label")
+
+[node name="Shade" type="Sprite2D" parent="."]
+modulate = Color(1, 1, 1, 0.454902)
+position = Vector2(0, 3)
+texture = ExtResource("4_kn7y2")
+
+[node name="Visual" type="AnimatedSprite2D" parent="."]
+sprite_frames = ExtResource("2_r4k33")
+animation = &"idle_down"
+offset = Vector2(0, -28)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_cirwg")
+
+[node name="Label" type="Label" parent="."]
+offset_left = -20.0
+offset_top = -107.0
+offset_right = 20.0
+offset_bottom = -58.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/line_spacing = -9
+theme_override_constants/outline_size = 7
+text = "You
+V"
+horizontal_alignment = 1
+vertical_alignment = 1

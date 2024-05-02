@@ -1,0 +1,16 @@
+<Project Sdk="Godot.NET.Sdk/4.3.0-dev.5">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>GodotMultiplayerExperiment</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="MemoryPack" Version="*"/>
+    <PackageReference Include="GDTask" Version="*"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\kcp2k-span\kcp2k\kcp2k\kcp2k.csproj" />
+  </ItemGroup>
+</Project>

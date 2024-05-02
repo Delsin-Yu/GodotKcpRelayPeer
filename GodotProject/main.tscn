@@ -1,0 +1,226 @@
+[gd_scene load_steps=3 format=3 uid="uid://bbpjpu30xe7xy"]
+
+[ext_resource type="Script" path="res://Scripts/Main.cs" id="1_lvoxj"]
+[ext_resource type="PackedScene" uid="uid://cpct08y321qf3" path="res://Prefab/Player.tscn" id="2_c3lhj"]
+
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("_controlParent", "_listRoomsBtn", "_roomsLabel", "_name", "_maxRoom", "_allocate", "_roomId", "_join", "_asServer", "_serverAddress", "_asClient", "_disconnect", "_playerContainer", "_label")]
+script = ExtResource("1_lvoxj")
+_controlParent = NodePath("CanvasLayer/UI/PanelContainer")
+_listRoomsBtn = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/ListBtn")
+_roomsLabel = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/Label")
+_name = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer/RoomName")
+_maxRoom = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer/MaxMember")
+_allocate = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer/CreateBtn")
+_roomId = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer2/JoinRoomId")
+_join = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer2/JoinBtn")
+_asServer = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/Button")
+_serverAddress = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/HBoxContainer/LineEdit")
+_asClient = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/HBoxContainer/Button2")
+_disconnect = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/AbortBtn")
+_player = ExtResource("2_c3lhj")
+_playerContainer = NodePath("PlayerContainer")
+_label = NodePath("CanvasLayer/UI/Label")
+
+[node name="PlayerContainer" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(2, 2)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/UI"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -143.5
+offset_top = -149.5
+offset_right = 143.5
+offset_bottom = 149.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/UI/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer2" type="VBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Relay"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Connections" type="VBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Label2" type="Label" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+layout_mode = 2
+text = "List Rooms"
+
+[node name="ListBtn" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+layout_mode = 2
+text = "List Rooms"
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 5
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 5
+theme_override_constants/margin_bottom = 5
+
+[node name="Label" type="Label" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/PanelContainer/MarginContainer"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.741385, 0.741385, 0.741385, 1)
+theme_override_font_sizes/font_size = 10
+clip_text = true
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+layout_mode = 2
+
+[node name="Label3" type="Label" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Create Room"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+layout_mode = 2
+
+[node name="RoomName" type="LineEdit" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "A"
+placeholder_text = "Room Name"
+
+[node name="MaxMember" type="SpinBox" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+size_flags_horizontal = 3
+value = 1.0
+
+[node name="CreateBtn" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Create Room"
+
+[node name="HSeparator2" type="HSeparator" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+auto_translate_mode = 1
+layout_mode = 2
+
+[node name="Label4" type="Label" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Join Room"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections"]
+auto_translate_mode = 1
+layout_mode = 2
+
+[node name="JoinRoomId" type="LineEdit" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer2"]
+auto_translate_mode = 1
+layout_mode = 2
+size_flags_horizontal = 3
+text = "0"
+placeholder_text = "Room Name"
+virtual_keyboard_type = 2
+
+[node name="JoinBtn" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/HBoxContainer2"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Join Room"
+
+[node name="VSeparator" type="VSeparator" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="VBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer"]
+layout_mode = 2
+
+[node name="Label2" type="Label" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Direct"
+
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2"]
+auto_translate_mode = 1
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="Connections" type="VBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Button" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections"]
+layout_mode = 2
+text = "As Host"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections"]
+layout_mode = 2
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/HBoxContainer"]
+custom_minimum_size = Vector2(150, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+text = "127.0.0.1:20000"
+placeholder_text = "Server Address"
+
+[node name="Button2" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/HBoxContainer"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "As Client"
+
+[node name="HSeparator" type="HSeparator" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2"]
+layout_mode = 2
+
+[node name="AbortBtn" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2"]
+auto_translate_mode = 1
+layout_mode = 2
+text = "Abort"
+
+[node name="Label" type="Label" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
