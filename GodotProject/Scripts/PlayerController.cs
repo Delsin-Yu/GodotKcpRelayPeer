@@ -53,7 +53,7 @@ public partial class PlayerController : CharacterBody2D
         if (Input.IsActionPressed("ui_down")) vector += Vector2I.Down;
         MoveAndCollide(((Vector2)vector).Normalized() * _speed * (float)delta);
         UpdateAnimation(vector);
-        // Rpc(MethodName.SyncState, ArgArray.Get([Position, vector]));
+        Rpc(MethodName.SyncState, ArgArray.Get([Position, vector]));
     }
 
     [Rpc]

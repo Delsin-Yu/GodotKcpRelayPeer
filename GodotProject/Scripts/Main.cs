@@ -29,11 +29,15 @@ public partial class Main : Node
     [Export] private Button _asServer;
     [Export] private LineEdit _serverAddress;
     [Export] private Button _asClient;
-    [Export] private Button _disconnect;
     [Export] private PackedScene _player;
     [Export] private Node2D _playerContainer;
     [Export] private Label _label;
 
+    [ExportCategory("Disconnect")]
+
+    [Export] private Button _disconnect;
+
+    
     public static int LocalId { get; set; }
     private readonly Dictionary<int, PlayerController> _playerControllers = [];
 
@@ -42,45 +46,85 @@ public partial class Main : Node
     public override void _Ready()
     {
         KcpRelayMultiplayerPeer.SetupLog(GD.PrintRich, GD.PrintErr);
-
+        
         _disconnect.Pressed += () => _onClose();
 
         _asServer.Pressed += () =>
         {
-            if (TryCreateP2PHost(out var peer)) AsHost(peer);
+            _controlParent.Hide();
+            
+            if (!TryCreateP2PHost(out var peer))
+            {
+                _controlParent.Show();
+                return;
+            }
+
+            AsHost(peer);
         };
         _asClient.Pressed += () =>
         {
-            if (TryCreateP2PClient(_serverAddress.Text, out var peer)) AsClient(peer);
+            _controlParent.Hide();
+            
+            if (!TryCreateP2PClient(_serverAddress.Text, out var peer))
+            {
+                _controlParent.Show();
+                return;
+            }
+
+            AsClient(peer);
         };
 
-        _listRoomsBtn.Pressed += () => ListAsync(_roomsLabel).Forget();
+        _listRoomsBtn.Pressed += () =>
+        {
+            _controlParent.Hide();
+
+            ListAsync(_roomsLabel)
+                .ContinueWith(_controlParent.Show);
+        };
 
         _allocate.Pressed += () =>
         {
-            AllocateAsync(_name.Text, (int)_maxRoom.Value).ContinueWith(
-                peer =>
-                {
-                    if (peer is null) return;
-                    AsHost(peer);
-                }
-            );
+            _controlParent.Hide();
+
+            TryCreateRelayHost(_name.Text, (int)_maxRoom.Value)
+                .ContinueWith(
+                    peer =>
+                    {
+                        if (peer is null)
+                        {
+                            _controlParent.Show();
+                            return;
+                        }
+
+                        AsHost(peer);
+                    }
+                );
         };
         _join.Pressed += () =>
         {
-            JoinAsync(ulong.Parse(_roomId.Text)).ContinueWith(
-                peer =>
-                {
-                    if (peer is null) return;
-                    AsClient(peer);
-                }
-            );
+            _controlParent.Hide();
+
+            TryCreateRelayClient(ulong.Parse(_roomId.Text))
+                .ContinueWith(
+                    peer =>
+                    {
+                        if (peer is null)
+                        {
+                            _controlParent.Show();
+                            return;
+                        }
+                        
+                        AsClient(peer);
+                    }
+                );
         };
+        
+        _disconnect.Hide();
+        _controlParent.Show();
     }
 
-    private async GDTask ListAsync(Label label)
+    private static async GDTask ListAsync(Label label)
     {
-        _controlParent.Hide();
         var sessions = await new KcpRelayMultiplayerPeer().ListSessions();
         if (!sessions.TryGetValue(out var value, out var error))
         {
@@ -99,15 +143,12 @@ public partial class Main : Node
 
             label.Text = currentSessions;
         }
-        _controlParent.Show();
     }
     
-    private async GDTask<KcpRelayMultiplayerPeer> AllocateAsync(string sessionName, int maxRoom)
+    private static async GDTask<KcpRelayMultiplayerPeer> TryCreateRelayHost(string sessionName, int maxRoom)
     {
-        _controlParent.Hide();
         var peer = new KcpRelayMultiplayerPeer();
         var result = await peer.CreateSession(new(sessionName, maxRoom));
-        _controlParent.Show();
         if (!result.Success)
         {
             GD.PrintErr($"AllocateAsync Error: {result}");
@@ -116,12 +157,10 @@ public partial class Main : Node
         return peer;
     }
 
-    private async GDTask<KcpRelayMultiplayerPeer> JoinAsync(ulong sessionId)
+    private static async GDTask<KcpRelayMultiplayerPeer> TryCreateRelayClient(ulong sessionId)
     {
-        _controlParent.Hide();
         var peer = new KcpRelayMultiplayerPeer();
         var result = await peer.JoinSession(sessionId);
-        _controlParent.Show();
         if (!result.Success)
         {
             GD.PrintErr($"$JoinAsync Error: {result}");
@@ -176,6 +215,7 @@ public partial class Main : Node
 
     private void AsHost(MultiplayerPeer peer)
     {
+        _disconnect.Show();
         var multiplayerApi = Multiplayer;
         multiplayerApi.MultiplayerPeer = peer;
         
@@ -188,14 +228,14 @@ public partial class Main : Node
         {
             var peerIdInt = (int)peerId;
             Rpc(MethodName.SpawnPlayer, ArgArray.Get([peerIdInt]));
-            // var currentPeers = Multiplayer.GetPeers().ToList();
-            // currentPeers.Remove(peerIdInt);
-            // currentPeers.Add(LocalId);
-            //
-            // foreach (var currentConnectedPeerId in currentPeers)
-            // {
-            //     RpcId(peerId, MethodName.SpawnPlayer, ArgArray.Get([currentConnectedPeerId]));
-            // }
+            var currentPeers = Multiplayer.GetPeers().ToList();
+            currentPeers.Remove(peerIdInt);
+            currentPeers.Add(LocalId);
+            
+            foreach (var currentConnectedPeerId in currentPeers)
+            {
+                RpcId(peerId, MethodName.SpawnPlayer, ArgArray.Get([currentConnectedPeerId]));
+            }
         };
         multiplayerApi.PeerConnected += peerConnected;
 
@@ -216,11 +256,14 @@ public partial class Main : Node
             using var currentPeer = Multiplayer.MultiplayerPeer;
             currentPeer.Close();
             Multiplayer.MultiplayerPeer = null;
+            _disconnect.Hide();
+            _controlParent.Show();
         };
     }
     
     private void AsClient(MultiplayerPeer peer)
     {
+        _disconnect.Show();
         var multiplayerApi = Multiplayer;
         multiplayerApi.MultiplayerPeer = peer;
         GD.Print("Client OK!");
@@ -235,6 +278,8 @@ public partial class Main : Node
             using var currentPeer = Multiplayer.MultiplayerPeer;
             currentPeer.Close();
             Multiplayer.MultiplayerPeer = null;
+            _disconnect.Hide();
+            _controlParent.Show();
         };
         
         multiplayerApi.ServerDisconnected += _onClose;

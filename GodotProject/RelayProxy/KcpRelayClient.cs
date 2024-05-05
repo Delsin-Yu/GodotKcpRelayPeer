@@ -146,29 +146,12 @@ internal sealed class KcpRelayClient : IDisposable
         fullMessageSpan[0] = (byte)messageType;
         payload.CopyTo(fullMessageSpan[1..]);
         _kcpClient.Send(fullMessageSpan, KcpChannel.Reliable);
-        KcpLog.Info($"[color=green]Send: {Print(payload)}");
+        // KcpLog.Info($"[color=green]Send: {Print(payload)}");
     }
 
     private static string Print(ReadOnlySpan<byte> payload) =>
         $"{payload.Length} bytes: \n{
-            string
-                .Join(
-                    '\n',
-                    payload
-                        .ToArray()
-                        .Chunk(16)
-                        .Select(
-                            x => string
-                                .Join(
-                                    ' ',
-                                    x
-                                        .Select(
-                                            y => y
-                                                .ToString("D3")
-                                        )
-                                )
-                        )
-                )}";
+            string.Join('\n', payload.ToArray().Chunk(16).Select(x => string.Join(' ', x.Select(y => y.ToString("D3")))))}";
 
     private void OnError(ErrorCode errorCode, string reason)
     {
@@ -277,7 +260,7 @@ internal sealed class KcpRelayClient : IDisposable
                 }
                 
                 _listener.NotifyPayload(payload);
-                KcpLog.Info($"[color=yellow]Recv: {Print(payload)}");
+                // KcpLog.Info($"[color=yellow]Recv: {Print(payload)}");
 
                 break;
             case KcpServerMessageType.Success:

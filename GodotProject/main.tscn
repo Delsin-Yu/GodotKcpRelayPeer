@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://Scripts/Main.cs" id="1_lvoxj"]
 [ext_resource type="PackedScene" uid="uid://cpct08y321qf3" path="res://Prefab/Player.tscn" id="2_c3lhj"]
 
-[node name="Node2D" type="Node2D" node_paths=PackedStringArray("_controlParent", "_listRoomsBtn", "_roomsLabel", "_name", "_maxRoom", "_allocate", "_roomId", "_join", "_asServer", "_serverAddress", "_asClient", "_disconnect", "_playerContainer", "_label")]
+[node name="Node2D" type="Node2D" node_paths=PackedStringArray("_controlParent", "_listRoomsBtn", "_roomsLabel", "_name", "_maxRoom", "_allocate", "_roomId", "_join", "_asServer", "_serverAddress", "_asClient", "_playerContainer", "_label", "_disconnect")]
 script = ExtResource("1_lvoxj")
 _controlParent = NodePath("CanvasLayer/UI/PanelContainer")
 _listRoomsBtn = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/VBoxContainer/PanelContainer/MarginContainer/Connections/ListBtn")
@@ -16,10 +16,10 @@ _join = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/H
 _asServer = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/Button")
 _serverAddress = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/HBoxContainer/LineEdit")
 _asClient = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/HBoxContainer/HBoxContainer/PanelContainer2/MarginContainer/Connections/HBoxContainer/Button2")
-_disconnect = NodePath("CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2/AbortBtn")
 _player = ExtResource("2_c3lhj")
 _playerContainer = NodePath("PlayerContainer")
 _label = NodePath("CanvasLayer/UI/Label")
+_disconnect = NodePath("CanvasLayer/UI/Button")
 
 [node name="PlayerContainer" type="Node2D" parent="."]
 y_sort_enabled = true
@@ -212,15 +212,16 @@ auto_translate_mode = 1
 layout_mode = 2
 text = "As Client"
 
-[node name="HSeparator" type="HSeparator" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2"]
-layout_mode = 2
-
-[node name="AbortBtn" type="Button" parent="CanvasLayer/UI/PanelContainer/MarginContainer/VBoxContainer2"]
-auto_translate_mode = 1
-layout_mode = 2
-text = "Abort"
-
 [node name="Label" type="Label" parent="CanvasLayer/UI"]
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 23.0
+
+[node name="Button" type="Button" parent="CanvasLayer/UI"]
+custom_minimum_size = Vector2(100, 50)
+layout_mode = 0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 72.0
+offset_bottom = 51.0
+text = "Abort"
