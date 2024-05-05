@@ -1,13 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using KcpGameServer;
 using KcpGameServer.Models;
-using Microsoft.AspNetCore.Mvc;
+using MemoryPack;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-// builder.Services.ConfigureHttpJsonOptions(options =>
-// {
-//     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
-// });
 
 var builderConfiguration = builder.Configuration;
 
@@ -19,36 +16,66 @@ var useHttps = builderConfiguration.GetValue<bool>("UseHttps");
 
 if (useHttps) builder.WebHost.UseKestrelHttpsConfiguration();
 
-builder.WebHost.UseUrls($"{(useHttps ? "https" : "http")}://{httpAddress}:{httpPort}");
-
 // Add services to the container.
-
-var app = builder.Build();
-
-var sessionApi = app.MapGroup("/session");
-
 var sessionManager = new SessionManager(builderConfiguration);
 
-// TODO: Change JSON to MemoryPack
+var app = builder.Build();
+var sessionApi = app.MapGroup("/session");
 
 sessionApi.MapGet(
     "/list",
-    () => sessionManager.ListSessions()
+    () =>
+    {
+        var sessions = sessionManager.ListSessions();
+        return Results.Bytes(MemoryPackSerializer.Serialize(sessions));
+    }
 );
 
 sessionApi.MapPost(
     "/join",
-    ([FromBody] ulong sessionId) => sessionManager.JoinSession(sessionId)
+    async (HttpContext context) =>
+    {
+        var (sessionId, success) = await DeserializeBody<ulong>(context);
+        if (!success) return Results.BadRequest();
+        var token = sessionManager.JoinSession(sessionId);
+        return Results.Bytes(MemoryPackSerializer.Serialize(token));
+    }
 );
 
 sessionApi.MapPost(
     "/allocate",
-    ([FromBody] SessionInfoModel sessionInfoModel) => sessionManager.AllocateSession(sessionInfoModel)
+    async (HttpContext context) =>
+    {
+        var (sessionInfoModel, success) = await DeserializeBody<SessionInfoModel>(context);
+        if (!success) return Results.BadRequest();
+        var token = sessionManager.AllocateSession(sessionInfoModel);
+        return Results.Bytes(MemoryPackSerializer.Serialize(token));
+    }
 );
 
 sessionApi.MapPost(
     "/modify",
-    ([FromBody] SessionInfoModel sessionInfoModel) => sessionManager.ModifySession(sessionInfoModel)
+    async (HttpContext context) =>
+    {
+        var (sessionInfoModel, success) = await DeserializeBody<SessionInfoModel>(context);
+        if (!success) return Results.BadRequest();
+        var token = sessionManager.ModifySession(sessionInfoModel);
+        return Results.Bytes(MemoryPackSerializer.Serialize(token));
+    }
 );
 
-app.Run();
+app.Run($"{(useHttps ? "https" : "http")}://{httpAddress}:{httpPort}");
+
+return;
+
+static async Task<(T? Value, bool Success)> DeserializeBody<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(HttpContext context)
+{
+    var inArgument = await MemoryPackSerializer.DeserializeAsync<T>(context.Request.Body);
+    if (inArgument is null)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        return (default, false);
+    }
+
+    return (inArgument, true);
+}
