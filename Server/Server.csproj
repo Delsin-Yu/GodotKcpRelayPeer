@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="MemoryPack" Version="*"/>
     <ProjectReference Include="..\kcp2k-span\kcp2k\kcp2k\kcp2k.csproj" />
+    <PackageReference Include="PublishAotCross" Version="*" />
   </ItemGroup>
   
   <ItemGroup>
