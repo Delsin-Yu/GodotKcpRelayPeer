@@ -38,7 +38,7 @@ public partial class KcpRelayMultiplayerPeer : MultiplayerPeerExtension
     private static Packet DeserializePacket(ReadOnlySpan<byte> span)
     {
         var clientId = BitConverter.ToInt32(span[..4]);
-        var transferChannel = BitConverter.ToInt32(span.Slice(4, 4));
+        var transferChannel = BitConverter.ToInt32(span[4..8]);
         var mode = (TransferModeEnum)span[8];
         var payload = span[9..].ToArray();
         return new(clientId, transferChannel, mode, payload);
@@ -91,7 +91,7 @@ public partial class KcpRelayMultiplayerPeer : MultiplayerPeerExtension
         var packet = new Packet(_sendTarget, _transferChannel, _transferMode, pBuffer);
         Span<byte> serializationBuffer = stackalloc byte[GetPacketSize(in packet)];
         SerializePacket(in packet, serializationBuffer);
-        _client.SendGodotPayload(_sendTarget, serializationBuffer);
+        _client.SendGodotPayload(serializationBuffer);
         return Error.Ok;
     }
     public override void _SetTargetPeer(int pPeer) => _sendTarget = pPeer;

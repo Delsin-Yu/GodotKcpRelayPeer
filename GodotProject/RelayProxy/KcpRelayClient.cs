@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Godot;
@@ -110,12 +109,9 @@ internal sealed class KcpRelayClient : IDisposable
         _kcpClient.Disconnect();
     }
 
-    public void SendGodotPayload(int clientId, ReadOnlySpan<byte> payload)
+    public void SendGodotPayload(ReadOnlySpan<byte> payload)
     {
-        Span<byte> data = stackalloc byte[payload.Length + 4];
-        BitConverter.TryWriteBytes(data, clientId);
-        payload.CopyTo(data[4..]);
-        SendPayload(KcpClientMessageType.GodotPayload, data);
+        SendPayload(KcpClientMessageType.GodotPayload, payload);
     }
     
     public void SendDisconnectClientPayload(int clientId)
@@ -148,11 +144,7 @@ internal sealed class KcpRelayClient : IDisposable
         _kcpClient.Send(fullMessageSpan, KcpChannel.Reliable);
         // KcpLog.Info($"[color=green]Send: {Print(payload)}");
     }
-
-    private static string Print(ReadOnlySpan<byte> payload) =>
-        $"{payload.Length} bytes: \n{
-            string.Join('\n', payload.ToArray().Chunk(16).Select(x => string.Join(' ', x.Select(y => y.ToString("D3")))))}";
-
+    
     private void OnError(ErrorCode errorCode, string reason)
     {
         KcpLog.Error($"[Kcp Relay Client] Error: {errorCode}, {reason ?? "No Reason"}");

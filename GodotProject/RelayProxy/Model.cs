@@ -1,5 +1,4 @@
 ﻿using System;
-using Godot;
 using MemoryPack;
 
 namespace GodotMultiplayerExperiment.RelayProxyV2;
