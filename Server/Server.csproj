@@ -13,4 +13,8 @@
     <ProjectReference Include="..\kcp2k-span\kcp2k\kcp2k\kcp2k.csproj" />
   </ItemGroup>
   
+  <ItemGroup>
+    <None Include="appsettings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+  </ItemGroup>
+  
 </Project>

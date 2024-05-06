@@ -64,7 +64,7 @@ sessionApi.MapPost(
     }
 );
 
-app.Run($"{(useHttps ? "https" : "http")}://{httpAddress}:{httpPort}");
+await app.RunAsync($"{(useHttps ? "https" : "http")}://{httpAddress}:{httpPort}");
 
 return;
 
