@@ -15,3 +15,6 @@
 4. Use the `Create Room` button along with the arguments to create a room on the server.
 5. Use the `Join Room` button along with the arguments to join a room on the server.
 6. Alternatively, or for testing purposes, use the buttons in the `Direct` section for traditional `ENet` based Godot Multiplayer implementation.
+
+#### Work to be done before integrating into your project
+The current implementation has no authentication, and by the nature of an open-sourced project, this means anyone can exploit your hosted server for their own relay purpose, so **do** implement your customized in-house authentication mechanism on top of this project.
