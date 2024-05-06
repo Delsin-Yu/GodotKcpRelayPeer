@@ -346,7 +346,18 @@ namespace KcpGameServer
                     Console.WriteLine($"Kcp: Error on connectionId: {connectionId}, {errorCode}, {reason}");
                     DisconnectClientWithReason(connectionId, KcpTerminateReason.ServerSideError);
                 },
-                new());
+                new(
+                    DualMode: configuration.GetValue<bool>("Kcp_DualMode"),
+                    NoDelay: configuration.GetValue<bool>("Kcp_NoDelay"),
+                    Interval: configuration.GetValue<uint>("Kcp_Interval"),
+                    Timeout: configuration.GetValue<int>("Kcp_Timeout"),
+                    RecvBufferSize: configuration.GetValue<int>("Kcp_RecvBufferSize"),
+                    SendBufferSize: configuration.GetValue<int>("Kcp_SendBufferSize"),
+                    FastResend: configuration.GetValue<int>("Kcp_FastResend"),
+                    ReceiveWindowSize: configuration.GetValue<uint>("Kcp_ReceiveWindowSize"),
+                    SendWindowSize: configuration.GetValue<uint>("Kcp_SendWindowSize"),
+                    MaxRetransmits: configuration.GetValue<uint>("Kcp_MaxRetransmit")
+                ));
 
             // 启动Kcp服务
             var port = configuration.GetValue<ushort>("KcpPort");

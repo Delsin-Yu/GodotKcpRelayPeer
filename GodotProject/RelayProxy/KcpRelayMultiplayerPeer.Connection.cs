@@ -38,7 +38,7 @@ public partial class KcpRelayMultiplayerPeer : IKcpNotificationListener
     private KcpRelayClient _client;
     
     /// <summary>DualMode；同时监听 IPv6 和 IPv4。如果平台仅支持 IPv4，请禁用此选项</summary>
-    private const bool _dualMode = true;
+    private const bool _dualMode = false;
 
     /// <summary>启用 NoDelay 以减少延迟；这也可以更好地缩放，防止缓冲区满</summary>
     private const bool _noDelay = true;
@@ -50,10 +50,10 @@ public partial class KcpRelayMultiplayerPeer : IKcpNotificationListener
     private const int _timeout = 10000;
 
     /// <summary>套接字接收缓冲区大小；大缓冲区有助于支持更多连接。如有需要，请增加操作系统套接字缓冲区大小限制</summary>
-    private const int _recvBufferSize = 1024 * 1027 * 7;
+    private const int _recvBufferSize = 1024 * 1024 * 7;
 
     /// <summary>套接字发送缓冲区大小；大缓冲区有助于支持更多连接。如有需要，请增加操作系统套接字缓冲区大小限制</summary>
-    private const int _sendBufferSize = 1024 * 1027 * 7;
+    private const int _sendBufferSize = 1024 * 1024 * 7;
 
     /// <summary>KCP fast resend 参数；更快的重发以换取更高的带宽成本。在正常模式下为 0，在Turbo模式下为2</summary>
     private const int _fastResend = 2;
