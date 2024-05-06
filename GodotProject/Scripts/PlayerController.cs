@@ -6,13 +6,12 @@ namespace GodotNetworkExperiment;
 
 public partial class PlayerController : CharacterBody2D
 {
+    [Export] private Vector2I CurrentDirection = Vector2I.Down;
     [Export] private AnimatedSprite2D _animatedSprite;
     [Export] private float _speed;
     [Export] private SpriteFrames _selfSpriteFrames;
     [Export] private SpriteFrames _otherSpriteFrames;
     [Export] private Control _youIndicator;
-    
-    private Vector2I _lastMovement = Vector2I.Down;
     
     private static class Names
     {
@@ -27,41 +26,36 @@ public partial class PlayerController : CharacterBody2D
     }
 
 
-    public int LocalId { get; set; }
+    private bool _isPlayerControllerCharacter;
+    private Vector2I _lastDirection = Vector2I.Zero;
 
-    public override void _Ready()
+    public void InitializeVisual()
     {
-        UpdateAnimation(Vector2I.Zero);
-    }
-
-    public void UpdateVisual()
-    {
-        var isSelf = LocalId == Main.LocalId;
-        _animatedSprite.SpriteFrames = isSelf ? _selfSpriteFrames : _otherSpriteFrames;
-        _youIndicator.Visible = isSelf;
-        UpdateAnimation(_lastMovement);
+        _isPlayerControllerCharacter = IsMultiplayerAuthority();
+        _animatedSprite.SpriteFrames = _isPlayerControllerCharacter ? _selfSpriteFrames : _otherSpriteFrames;
+        _youIndicator.Visible = _isPlayerControllerCharacter;
+        UpdateAnimation();
     }
     
     public override void _PhysicsProcess(double delta)
     {
-        if (LocalId != Main.LocalId) return;
-        var vector = Vector2I.Zero;
+        if (!_isPlayerControllerCharacter)
+        {
+            UpdateAnimation();
+            return;
+        }
         
-        if (Input.IsActionPressed("ui_left")) vector += Vector2I.Left;
-        if (Input.IsActionPressed("ui_right")) vector += Vector2I.Right;
-        if (Input.IsActionPressed("ui_up")) vector += Vector2I.Up;
-        if (Input.IsActionPressed("ui_down")) vector += Vector2I.Down;
-        MoveAndCollide(((Vector2)vector).Normalized() * _speed * (float)delta);
-        UpdateAnimation(vector);
-        Rpc(MethodName.SyncState, ArgArray.Get([Position, vector]));
+        CurrentDirection = Vector2I.Zero;
+        
+        if (Input.IsActionPressed("ui_left")) CurrentDirection += Vector2I.Left;
+        if (Input.IsActionPressed("ui_right")) CurrentDirection += Vector2I.Right;
+        if (Input.IsActionPressed("ui_up")) CurrentDirection += Vector2I.Up;
+        if (Input.IsActionPressed("ui_down")) CurrentDirection += Vector2I.Down;
+        MoveAndCollide(((Vector2)CurrentDirection).Normalized() * _speed * (float)delta);
+        
+        UpdateAnimation();
     }
 
-    [Rpc]
-    private void SyncState(Vector2 position, Vector2I movement)
-    {
-        Position = position;
-        UpdateAnimation(movement);
-    }
 
     private enum Direction
     {
@@ -71,36 +65,39 @@ public partial class PlayerController : CharacterBody2D
         Right
     }
     
-    private void UpdateAnimation(Vector2I movement)
+    private void UpdateAnimation()
     {
+        if(_lastDirection == CurrentDirection) return;
+        _lastDirection = CurrentDirection;
+        
         StringName state;
         
-        if (movement != Vector2I.Zero)
+        if (_lastDirection != Vector2I.Zero)
         {
-            state = GetDirection(movement) switch
+            state = GetDirection(_lastDirection) switch
             {
                 Direction.Up => Names.MoveUp,
                 Direction.Down => Names.MoveDown,
                 Direction.Left => Names.MoveLeft,
                 Direction.Right => Names.MoveRight,
-                _ => throw new ArgumentOutOfRangeException(nameof(movement), movement, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(_lastDirection), _lastDirection, null)
             };
-            _lastMovement = movement;
+            CurrentDirection = _lastDirection;
         }
         else
         {
-            state = GetDirection(_lastMovement) switch
+            state = GetDirection(CurrentDirection) switch
             {
                 Direction.Up => Names.IdleUp,
                 Direction.Down => Names.IdleDown,
                 Direction.Left => Names.IdleLeft,
                 Direction.Right => Names.IdleRight,
-                _ => throw new ArgumentOutOfRangeException(nameof(_lastMovement), _lastMovement, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(CurrentDirection), CurrentDirection, null)
             };
         }
         
         _animatedSprite.Play(state);
-    }   
+    }
     
     private static Direction GetDirection(Vector2I movement) =>
         movement.X switch

@@ -11,7 +11,9 @@ namespace GodotNetworkExperiment;
 public partial class Main : Node
 {
     [Export] private Control _controlParent;
-
+    [Export] private PackedScene _player;
+    [Export] private Node2D _playerContainer;
+    
     [ExportCategory("Relay")]
     
     [Export] private Button _listRoomsBtn;
@@ -29,8 +31,6 @@ public partial class Main : Node
     [Export] private Button _asServer;
     [Export] private LineEdit _serverAddress;
     [Export] private Button _asClient;
-    [Export] private PackedScene _player;
-    [Export] private Node2D _playerContainer;
     [Export] private Label _label;
 
     [ExportCategory("Disconnect")]
@@ -304,11 +304,10 @@ public partial class Main : Node
     {
         GD.Print($"Spawn Player for: {networkId}");
         var playerInstance = _player.Instantiate<PlayerController>();
-        playerInstance.LocalId = networkId;
         playerInstance.SetMultiplayerAuthority(networkId);
         _playerContainer.AddChild(playerInstance);
         playerInstance.Name = $"Player-{networkId}";
-        playerInstance.UpdateVisual();
+        playerInstance.InitializeVisual();
         _playerControllers.Add(networkId, playerInstance);
     }
 

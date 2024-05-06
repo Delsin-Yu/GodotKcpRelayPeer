@@ -1,9 +1,17 @@
-[gd_scene load_steps=6 format=3 uid="uid://cpct08y321qf3"]
+[gd_scene load_steps=7 format=3 uid="uid://cpct08y321qf3"]
 
 [ext_resource type="Script" path="res://Scripts/PlayerController.cs" id="1_21021"]
 [ext_resource type="SpriteFrames" uid="uid://cffiaf3qp2rr2" path="res://Animation/SelfSpriteFrames.tres" id="2_m6i3m"]
 [ext_resource type="SpriteFrames" uid="uid://eal07vfr7tmy" path="res://Animation/OtherSpriteFrames.tres" id="2_r4k33"]
 [ext_resource type="Texture2D" uid="uid://bebksqe8o7s5l" path="res://Art/Shadow.png" id="4_kn7y2"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_dntp7"]
+properties/0/path = NodePath(".:CurrentDirection")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:position")
+properties/1/spawn = true
+properties/1/replication_mode = 1
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_cirwg"]
 radius = 0.01
@@ -12,11 +20,16 @@ radius = 0.01
 collision_layer = 0
 motion_mode = 1
 script = ExtResource("1_21021")
+CurrentDirection = Vector2i(0, 0)
 _animatedSprite = NodePath("Visual")
 _speed = 100.0
 _selfSpriteFrames = ExtResource("2_m6i3m")
 _otherSpriteFrames = ExtResource("2_r4k33")
 _youIndicator = NodePath("Label")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_dntp7")
+visibility_update_mode = 1
 
 [node name="Shade" type="Sprite2D" parent="."]
 modulate = Color(1, 1, 1, 0.454902)
