@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
-
-namespace KcpGameServer.Models
+﻿namespace KcpGameServer.Models
 {
     public class SessionModel
     {

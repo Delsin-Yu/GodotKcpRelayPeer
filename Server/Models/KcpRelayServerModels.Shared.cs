@@ -1,5 +1,4 @@
-﻿using System;
-using MemoryPack;
+﻿using MemoryPack;
 
 // ReSharper disable MemberCanBePrivate.Global
 

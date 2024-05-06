@@ -1,7 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
-
-namespace KcpGameServer.Models
+﻿namespace KcpGameServer.Models
 {
     public static class UidManager
     {

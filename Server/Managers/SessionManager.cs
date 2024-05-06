@@ -1,16 +1,9 @@
-﻿// #define DEBUG
-
-using System;
-using System.Buffers;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using kcp2k;
 using KcpGameServer.Managers.Pending;
 using KcpGameServer.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace KcpGameServer
 {
@@ -28,6 +21,7 @@ namespace KcpGameServer
     /// </remarks>
     public class SessionManager : IDisposable
     {
+       
 #region Http Pending Buffer
 
         /// <summary> 
@@ -105,19 +99,22 @@ namespace KcpGameServer
         /// </summary>
         private const int GUID_BYTE_ARRAY_LENGTH = 16;
 
+        [Conditional("DEBUG")]
         private static void DebugLog(string message, ConsoleColor color = ConsoleColor.Cyan)
         {
-#if DEBUG
             var cached = Console.ForegroundColor;
             Console.ForegroundColor = color;
             Console.WriteLine($"[DEBUG] {message}");
             Console.ForegroundColor = cached;
-#endif
         }
         
         public SessionManager(IConfiguration configuration)
         {
 #region 初始化所有缓存
+
+            Log.Info = static message => DebugLog(message, ConsoleColor.Green);
+            Log.Warning = static message => DebugLog(message, ConsoleColor.Yellow);
+            Log.Error = static message => DebugLog(message, ConsoleColor.Red);
 
             KcpPendingBuffer pendingKcpConnections = new(
                 connectionId => DisconnectClientWithReason(connectionId, KcpTerminateReason.TimeOut),
