@@ -254,7 +254,7 @@ internal sealed class KcpRelayClient : IDisposable
                     return;
                 }
 
-                if (_relayRole == RelayRole.Client && !_currentConnectedClient.Add(1))
+                if (_relayRole == RelayRole.Client && _currentConnectedClient.Add(1))
                 {
                     _listener.EmitPeerConnected(1);
                 }

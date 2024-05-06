@@ -226,6 +226,7 @@ public partial class Main : Node
 
         MultiplayerApi.PeerConnectedEventHandler peerConnected = peerId =>
         {
+            GD.Print($"Server: Peer {peerId} Connected");
             var peerIdInt = (int)peerId;
             Rpc(MethodName.SpawnPlayer, ArgArray.Get([peerIdInt]));
             var currentPeers = Multiplayer.GetPeers().ToList();
@@ -241,7 +242,7 @@ public partial class Main : Node
 
         MultiplayerApi.PeerDisconnectedEventHandler peerDisconnected = peerId =>
         {
-            GD.Print($"Peer {peerId} DCs");
+            GD.Print($"Server: Peer {peerId} Disconnected");
             if (peerId == 0) return;
             var peerIdInt = (int)peerId;
             Rpc(MethodName.DeletePlayer, ArgArray.Get([peerIdInt]));
@@ -271,8 +272,20 @@ public partial class Main : Node
 
         LocalId = peer.GetUniqueId();
     
+        
+        MultiplayerApi.PeerConnectedEventHandler peerConnected = peerId =>
+        {
+            GD.Print($"Client: Peer {peerId} Connected");
+        };        
+        MultiplayerApi.PeerDisconnectedEventHandler peerDisconnected = peerId =>
+        {
+            GD.Print($"Client: Peer {peerId} Disconnected");
+        };
+        
         _onClose = () =>
         {
+            multiplayerApi.PeerConnected -= peerConnected;
+            multiplayerApi.PeerDisconnected -= peerDisconnected;
             multiplayerApi.ServerDisconnected -= _onClose;
             Cleanup();
             using var currentPeer = Multiplayer.MultiplayerPeer;
@@ -283,6 +296,9 @@ public partial class Main : Node
         };
         
         multiplayerApi.ServerDisconnected += _onClose;
+
+        multiplayerApi.PeerConnected += peerConnected;
+        multiplayerApi.PeerDisconnected += peerDisconnected;
     }
 
     private void Cleanup()
