@@ -291,59 +291,13 @@ namespace KcpGameServer
                     }
                 },
                 // OnDisconnected
-                connectionId =>
-                {
-                    // 如果为未授权连接，则从未授权连接中移除
-                    if (pendingKcpConnections.TryExtractBuffer(connectionId, out _) == ExtractResult.Success)
-                    {
-
-                        DebugLog($"Kcp: OnDisconnected.pendingKcpConnections: {connectionId}");
-
-                        return;
-                    }
-
-                    // 如果为主机，则从主机中移除，并且断开所有成员的连接，关闭房间
-                    if (_hostToSessionMapping.TryRemove(connectionId, out var sessionModel))
-                    {
-
-                        DebugLog($"Kcp: OnDisconnected._hostToSessionMapping: {connectionId}");
-
-                        var removeSucceed = _sessions.TryRemove(sessionModel.SessionId, out _);
-                        if (!removeSucceed) Console.WriteLine($"Kcp: Error when trying to remove session");
-                        lock (sessionModel)
-                        {
-                            foreach (var clientConnectionId in sessionModel.ConnectionMap.ConnectionIds)
-                            {
-                                DisconnectClientWithReason(clientConnectionId, KcpTerminateReason.HostShutdown);
-                            }
-                        }
-
-                        UidManager.Release(sessionModel.SessionId);
-                        return;
-                    }
-
-                    // 如果为成员，则告知主机目标成员已经断开连接
-                    if (_clientToHostMapping.TryRemove(connectionId, out var hostConnectionId))
-                    {
-
-                        DebugLog($"Kcp: OnDisconnected._clientToHostMapping: {connectionId}");
-
-                        Span<byte> buffer = stackalloc byte[4];
-                        BitConverter.TryWriteBytes(buffer, connectionId);
-                        SendPayload(hostConnectionId, KcpServerMessageType.ClientDisconnected, buffer);
-
-                        if (!_hostToSessionMapping.TryGetValue(hostConnectionId, out sessionModel)) return;
-                        lock (sessionModel.ConnectionMap)
-                        {
-                            sessionModel.ConnectionMap.Remove(connectionId);
-                        }
-                    }
-                },
+                HandleDisconnection,
                 // OnError
                 (connectionId, errorCode, reason) =>
                 {
                     // 服务端收到错误信息时自动断开连接
                     Console.WriteLine($"Kcp: Error on connectionId: {connectionId}, {errorCode}, {reason}");
+                    HandleDisconnection(connectionId);
                     DisconnectClientWithReason(connectionId, KcpTerminateReason.ServerSideError);
                 },
                 new(
@@ -358,6 +312,55 @@ namespace KcpGameServer
                     SendWindowSize: configuration.GetValue<uint>("Kcp_SendWindowSize"),
                     MaxRetransmits: configuration.GetValue<uint>("Kcp_MaxRetransmit")
                 ));
+
+            void HandleDisconnection(int connectionId)
+            {
+                // 如果为未授权连接，则从未授权连接中移除
+                if (pendingKcpConnections.TryExtractBuffer(connectionId, out _) == ExtractResult.Success)
+                {
+
+                    DebugLog($"Kcp: OnDisconnected.pendingKcpConnections: {connectionId}");
+
+                    return;
+                }
+
+                // 如果为主机，则从主机中移除，并且断开所有成员的连接，关闭房间
+                if (_hostToSessionMapping.TryRemove(connectionId, out var sessionModel))
+                {
+
+                    DebugLog($"Kcp: OnDisconnected._hostToSessionMapping: {connectionId}");
+
+                    var removeSucceed = _sessions.TryRemove(sessionModel.SessionId, out _);
+                    if (!removeSucceed) Console.WriteLine($"Kcp: Error when trying to remove session");
+                    lock (sessionModel)
+                    {
+                        foreach (var clientConnectionId in sessionModel.ConnectionMap.ConnectionIds)
+                        {
+                            DisconnectClientWithReason(clientConnectionId, KcpTerminateReason.HostShutdown);
+                        }
+                    }
+
+                    UidManager.Release(sessionModel.SessionId);
+                    return;
+                }
+
+                // 如果为成员，则告知主机目标成员已经断开连接
+                if (_clientToHostMapping.TryRemove(connectionId, out var hostConnectionId))
+                {
+
+                    DebugLog($"Kcp: OnDisconnected._clientToHostMapping: {connectionId}");
+
+                    Span<byte> buffer = stackalloc byte[4];
+                    BitConverter.TryWriteBytes(buffer, connectionId);
+                    SendPayload(hostConnectionId, KcpServerMessageType.ClientDisconnected, buffer);
+
+                    if (!_hostToSessionMapping.TryGetValue(hostConnectionId, out sessionModel)) return;
+                    lock (sessionModel.ConnectionMap)
+                    {
+                        sessionModel.ConnectionMap.Remove(connectionId);
+                    }
+                }
+            }
 
             // 启动Kcp服务
             var port = configuration.GetValue<ushort>("KcpPort");
