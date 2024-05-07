@@ -32,3 +32,4 @@ tests/metadata.json
 .DS_Store
 GDTask/nupkg
 docfx
+Build

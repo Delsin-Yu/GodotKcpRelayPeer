@@ -45,6 +45,28 @@ public partial class Main : Node
     
     public override void _Ready()
     {
+        int runNum = -1;
+        if(OS.HasFeature("1")) runNum = 0;
+        else if(OS.HasFeature("2")) runNum = 1;
+        else if(OS.HasFeature("3")) runNum = 2;
+        else if(OS.HasFeature("4")) runNum = 3;
+        
+        if (runNum != -1)
+        {
+            using var window = GetTree().Root;
+
+            var usableRect = DisplayServer.ScreenGetUsableRect();
+            window.Size = usableRect.Size / 2;
+            window.Position = runNum switch
+            {
+                0 => usableRect.Position,
+                1 => usableRect.Position + new Vector2I(window.Size.X, 0),
+                2 => usableRect.Position + new Vector2I(0, window.Size.Y),
+                3 => usableRect.Position + window.Size,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+        }
+        
         KcpRelayMultiplayerPeer.SetupLog(GD.PrintRich, GD.PrintErr);
         
         _disconnect.Pressed += () => _onClose();
