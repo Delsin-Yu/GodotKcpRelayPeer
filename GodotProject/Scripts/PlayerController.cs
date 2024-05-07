@@ -1,11 +1,11 @@
 using System;
 using Godot;
+using Helpers;
 
 namespace GodotNetworkExperiment;
 
 public partial class PlayerController : CharacterBody2D
 {
-    [Export] private Vector2I CurrentDirection = Vector2I.Down;
     [Export] private AnimatedSprite2D _animatedSprite;
     [Export] private float _speed;
     [Export] private SpriteFrames _selfSpriteFrames;
@@ -33,41 +33,41 @@ public partial class PlayerController : CharacterBody2D
         _isPlayerControllerCharacter = IsMultiplayerAuthority();
         _animatedSprite.SpriteFrames = _isPlayerControllerCharacter ? _selfSpriteFrames : _otherSpriteFrames;
         _youIndicator.Visible = _isPlayerControllerCharacter;
-        UpdateAnimation();
+        UpdateAnimation(_lastDirection);
     }
     
     public override void _PhysicsProcess(double delta)
     {
-        if (!_isPlayerControllerCharacter)
-        {
-            UpdateAnimation();
-            return;
-        }
+        if (!_isPlayerControllerCharacter) return;
         
-        CurrentDirection = Vector2I.Zero;
-        
-        if (Input.IsActionPressed("ui_left")) CurrentDirection += Vector2I.Left;
-        if (Input.IsActionPressed("ui_right")) CurrentDirection += Vector2I.Right;
-        if (Input.IsActionPressed("ui_up")) CurrentDirection += Vector2I.Up;
-        if (Input.IsActionPressed("ui_down")) CurrentDirection += Vector2I.Down;
-        MoveAndCollide(((Vector2)CurrentDirection).Normalized() * _speed * (float)delta);
-        
-        UpdateAnimation();
+        var movementVector = Vector2I.Zero;
+        if (Input.IsActionPressed("ui_left")) movementVector += Vector2I.Left;
+        if (Input.IsActionPressed("ui_right")) movementVector += Vector2I.Right;
+        if (Input.IsActionPressed("ui_up")) movementVector += Vector2I.Up;
+        if (Input.IsActionPressed("ui_down")) movementVector += Vector2I.Down;
+        MoveAndCollide(((Vector2)movementVector).Normalized() * _speed * (float)delta);
+        UpdateAnimation(movementVector);
+
+        Rpc(MethodName.UpdateSynchronizedParameters, ArgArray.Get([movementVector, Position]));
     }
 
+    [Rpc]
+    private void UpdateSynchronizedParameters(Vector2I movementVector, Vector2 position)
+    {
+        Position = position;
+        UpdateAnimation(movementVector);
+    }
 
     private enum Direction
     {
-        Up,
-        Down,
-        Left,
-        Right
+        Up, Down,
+        Left, Right
     }
     
-    private void UpdateAnimation()
+    private void UpdateAnimation(Vector2I movementVector)
     {
-        if(_lastDirection == CurrentDirection) return;
-        _lastDirection = CurrentDirection;
+        if(_lastDirection == movementVector) return;
+        _lastDirection = movementVector;
         
         StringName state;
         
@@ -81,17 +81,16 @@ public partial class PlayerController : CharacterBody2D
                 Direction.Right => Names.MoveRight,
                 _ => throw new ArgumentOutOfRangeException(nameof(_lastDirection), _lastDirection, null)
             };
-            CurrentDirection = _lastDirection;
         }
         else
         {
-            state = GetDirection(CurrentDirection) switch
+            state = GetDirection(_lastDirection) switch
             {
                 Direction.Up => Names.IdleUp,
                 Direction.Down => Names.IdleDown,
                 Direction.Left => Names.IdleLeft,
                 Direction.Right => Names.IdleRight,
-                _ => throw new ArgumentOutOfRangeException(nameof(CurrentDirection), CurrentDirection, null)
+                _ => throw new ArgumentOutOfRangeException(nameof(_lastDirection), _lastDirection, null)
             };
         }
         
