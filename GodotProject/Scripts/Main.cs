@@ -321,7 +321,7 @@ public partial class Main : Node
         
         foreach (var value in _playerControllers.Values)
         {
-            value.Free();
+            value.QueueFree();
             value.Dispose();
         }
         _playerControllers.Clear();
