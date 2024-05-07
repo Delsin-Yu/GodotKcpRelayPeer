@@ -24,7 +24,7 @@ internal sealed class KcpRelayClient : IDisposable
     private bool _isStarted;
     private KcpTerminateReason? _disconnectReason;
 
-    private readonly HashSet<int> _currentConnectedClient = [];
+    private readonly Dictionary<int, int> _connectionId2ClientId = [];
     
     public int ID { get; private set; }
     
@@ -109,15 +109,13 @@ internal sealed class KcpRelayClient : IDisposable
         _kcpClient.Disconnect();
     }
 
-    public void SendGodotPayload(ReadOnlySpan<byte> payload)
-    {
+    public void SendGodotPayload(Span<byte> payload) => 
         SendPayload(KcpClientMessageType.GodotPayload, payload);
-    }
-    
-    public void SendDisconnectClientPayload(int clientId)
+
+    public void SendDisconnectClientPayload(int connectionId)
     {
         Span<byte> data = [0, 0, 0, 0];
-        BitConverter.TryWriteBytes(data, clientId);
+        BitConverter.TryWriteBytes(data, connectionId);
         SendPayload(KcpClientMessageType.DisconnectClient, data);
     }
 
@@ -153,7 +151,7 @@ internal sealed class KcpRelayClient : IDisposable
 
     private void OnDisconnected()
     {
-        KcpLog.Info($"[Kcp Relay Client] OnDisconnected\n{new StackTrace()}");
+        KcpLog.Info($"[Kcp Relay Client] OnDisconnected");
         _isStarted = false;
         if (_relayRole == RelayRole.Client)
         {
@@ -186,7 +184,8 @@ internal sealed class KcpRelayClient : IDisposable
                 
                 _disconnectReason = (KcpTerminateReason)payload[0];
                 _kcpClient.Disconnect();
-                
+                KcpLog.Info($"Relay Server terminated the connection: {_disconnectReason}");
+    
                 return;
             case KcpServerMessageType.ClientConnected:
 
@@ -196,20 +195,22 @@ internal sealed class KcpRelayClient : IDisposable
                     return;
                 }
 
-                if (payload.Length != 4)
+                if (payload.Length != 8)
                 {
-                    KcpLog.Error($"[Kcp Relay Client] Client Connected/Disconnected requires payload length of 4 instead of {payload.Length}!");
+                    KcpLog.Error($"[Kcp Relay Client] Client Connected/Disconnected requires payload length of 8 instead of {payload.Length}!");
                     return;
                 }
 
-                var clientId = BitConverter.ToInt32(payload);
-
-                if (BlockFurtherConnection || clientId < 2 || !_currentConnectedClient.Add(clientId))
+                var connectionId = BitConverter.ToInt32(payload);
+                var clientId = BitConverter.ToInt32(payload[4..]);
+                
+                if (BlockFurtherConnection || clientId < 2 || !_connectionId2ClientId.TryAdd(connectionId, clientId))
                 {
-                    SendDisconnectClientPayload(clientId);
+                    SendDisconnectClientPayload(connectionId);
                     return;
                 }
                 
+                KcpLog.Info($"Client [{clientId}] Connected: {connectionId}");
                 _listener.EmitPeerConnected(clientId);
                 
                 break;
@@ -227,13 +228,14 @@ internal sealed class KcpRelayClient : IDisposable
                     return;
                 }
                 
-                clientId = BitConverter.ToInt32(payload);
+                connectionId = BitConverter.ToInt32(payload);
 
-                if (!_currentConnectedClient.Remove(clientId))
+                if (!_connectionId2ClientId.Remove(connectionId, out clientId))
                 {
+                    KcpLog.Error($"[Kcp Relay Client] {connectionId} does not existed inside the connected client list!");
                     return;
                 }
-                
+                KcpLog.Info($"Client [{clientId}] Disconnected: {connectionId}");
                 _listener.EmitPeerDisconnected(clientId);
                 
                 break;
@@ -246,12 +248,19 @@ internal sealed class KcpRelayClient : IDisposable
                     return;
                 }
 
-                if (_relayRole == RelayRole.Client && _currentConnectedClient.Add(1))
+                if (_relayRole == RelayRole.Client && _connectionId2ClientId.TryAdd(1, 1))
                 {
                     _listener.EmitPeerConnected(1);
                 }
                 
-                _listener.NotifyPayload(payload);
+                connectionId = BitConverter.ToInt32(payload);
+                
+                if (!_connectionId2ClientId.TryGetValue(connectionId, out clientId))
+                {
+                    return;
+                }
+
+                _listener.NotifyPayload(clientId, payload[4..]);
                 // KcpLog.Info($"[color=yellow]Recv: {Print(payload)}");
 
                 break;

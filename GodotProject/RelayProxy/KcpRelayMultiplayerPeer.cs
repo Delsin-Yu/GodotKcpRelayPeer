@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -20,8 +20,8 @@ public partial class KcpRelayMultiplayerPeer : MultiplayerPeerExtension
 
     private readonly Queue<Packet> _packetQueue = [];
     
-    void IKcpNotificationListener.NotifyPayload(in ReadOnlySpan<byte> payload) => 
-        _packetQueue.Enqueue(DeserializePacket(payload));
+    void IKcpNotificationListener.NotifyPayload(int clientId, in ReadOnlySpan<byte> payload) => 
+        _packetQueue.Enqueue(DeserializePacket(clientId, payload));
 
     void IKcpNotificationListener.EmitPeerConnected(int clientId)
     {
@@ -35,12 +35,11 @@ public partial class KcpRelayMultiplayerPeer : MultiplayerPeerExtension
         EmitSignal(SignalName.PeerDisconnected, _methodBuffer);
     }
     
-    private static Packet DeserializePacket(ReadOnlySpan<byte> span)
+    private static Packet DeserializePacket(int clientId, ReadOnlySpan<byte> span)
     {
-        var clientId = BitConverter.ToInt32(span[..4]);
-        var transferChannel = BitConverter.ToInt32(span[4..8]);
-        var mode = (TransferModeEnum)span[8];
-        var payload = span[9..].ToArray();
+        var transferChannel = BitConverter.ToInt32(span[..4]);
+        var mode = (TransferModeEnum)span[4];
+        var payload = span[5..].ToArray();
         return new(clientId, transferChannel, mode, payload);
     }
 
@@ -64,7 +63,7 @@ public partial class KcpRelayMultiplayerPeer : MultiplayerPeerExtension
         _client = null;
     }
 
-    public override void _Close() => _client.AbortConnection();
+    public override void _Close() => _client?.AbortConnection();
     public override void _DisconnectPeer(int pPeer, bool pForce) => _client.SendDisconnectClientPayload(pPeer);
 
 

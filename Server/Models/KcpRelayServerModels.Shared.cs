@@ -136,12 +136,12 @@ namespace KcpGameServer.Models
         ClientDisconnected,
 
         /// <summary>
-        /// 一位成员连接：1 Byte <see cref="KcpServerMessageType"/>，4 Byte <see cref="int"/>
+        /// 一位成员连接：1 Byte <see cref="KcpServerMessageType"/>，4 Byte <see cref="int"/> ConnectionId，4 Byte <see cref="int"/> ClientId
         /// </summary>
         ClientConnected,
 
         /// <summary>
-        /// 有效数据：1 Byte <see cref="KcpServerMessageType"/>，N Byte 有效数据
+        /// 有效载荷：1 Byte <see cref="KcpServerMessageType"/>，N Byte 有效载荷
         /// </summary>
         PayloadRelay,
 

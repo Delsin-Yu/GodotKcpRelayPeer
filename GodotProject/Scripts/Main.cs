@@ -55,16 +55,20 @@ public partial class Main : Node
         {
             using var window = GetTree().Root;
 
-            var usableRect = DisplayServer.ScreenGetUsableRect();
-            window.Size = usableRect.Size / 2;
+            var usableRect = DisplayServer.ScreenGetUsableRect(0);
+
+            var size = usableRect.Size / 2 - new Vector2I(0, 0);
+            
             window.Position = runNum switch
             {
-                0 => usableRect.Position,
-                1 => usableRect.Position + new Vector2I(window.Size.X, 0),
-                2 => usableRect.Position + new Vector2I(0, window.Size.Y),
-                3 => usableRect.Position + window.Size,
+                0 => usableRect.Position + new Vector2I(0, 0),
+                1 => usableRect.Position + new Vector2I(size.X, 0),
+                2 => usableRect.Position + new Vector2I(0, size.Y),
+                3 => usableRect.Position + size,
                 _ => throw new ArgumentOutOfRangeException()
             };
+
+            window.Size = size;
         }
         
         KcpRelayMultiplayerPeer.SetupLog(GD.PrintRich, GD.PrintErr);
@@ -250,13 +254,17 @@ public partial class Main : Node
         {
             GD.Print($"Server: Peer {peerId} Connected");
             var peerIdInt = (int)peerId;
-            Rpc(MethodName.SpawnPlayer, ArgArray.Get([peerIdInt]));
-            var currentPeers = Multiplayer.GetPeers().ToList();
-            currentPeers.Remove(peerIdInt);
-            currentPeers.Add(LocalId);
             
-            foreach (var currentConnectedPeerId in currentPeers)
+            // Spawn character for this new peer on all peers
+            Rpc(MethodName.SpawnPlayer, ArgArray.Get([peerIdInt]));
+            
+            // Span host's character on this new peer
+            RpcId(peerId, MethodName.SpawnPlayer, ArgArray.Get([LocalId]));
+            
+            // Span other peer's character on this new peer
+            foreach (var currentConnectedPeerId in Multiplayer.GetPeers())
             {
+                if(currentConnectedPeerId == peerIdInt) continue;
                 RpcId(peerId, MethodName.SpawnPlayer, ArgArray.Get([currentConnectedPeerId]));
             }
         };
@@ -265,7 +273,6 @@ public partial class Main : Node
         MultiplayerApi.PeerDisconnectedEventHandler peerDisconnected = peerId =>
         {
             GD.Print($"Server: Peer {peerId} Disconnected");
-            if (peerId == 0) return;
             var peerIdInt = (int)peerId;
             Rpc(MethodName.DeletePlayer, ArgArray.Get([peerIdInt]));
         };
@@ -293,21 +300,9 @@ public partial class Main : Node
         _label.Text = "Client";
 
         LocalId = peer.GetUniqueId();
-    
-        
-        MultiplayerApi.PeerConnectedEventHandler peerConnected = peerId =>
-        {
-            GD.Print($"Client: Peer {peerId} Connected");
-        };        
-        MultiplayerApi.PeerDisconnectedEventHandler peerDisconnected = peerId =>
-        {
-            GD.Print($"Client: Peer {peerId} Disconnected");
-        };
-        
+
         _onClose = () =>
         {
-            multiplayerApi.PeerConnected -= peerConnected;
-            multiplayerApi.PeerDisconnected -= peerDisconnected;
             multiplayerApi.ServerDisconnected -= _onClose;
             Cleanup();
             using var currentPeer = Multiplayer.MultiplayerPeer;
@@ -318,9 +313,6 @@ public partial class Main : Node
         };
         
         multiplayerApi.ServerDisconnected += _onClose;
-
-        multiplayerApi.PeerConnected += peerConnected;
-        multiplayerApi.PeerDisconnected += peerDisconnected;
     }
 
     private void Cleanup()

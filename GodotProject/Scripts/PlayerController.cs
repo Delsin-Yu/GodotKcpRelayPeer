@@ -27,6 +27,8 @@ public partial class PlayerController : CharacterBody2D
 
     private bool _isPlayerControllerCharacter;
     private Vector2I _lastDirection = Vector2I.Zero;
+    
+    private Vector2 _targetPosition = Vector2.Zero;
 
     public void InitializeVisual()
     {
@@ -35,7 +37,14 @@ public partial class PlayerController : CharacterBody2D
         _youIndicator.Visible = _isPlayerControllerCharacter;
         UpdateAnimation(_lastDirection);
     }
-    
+
+    public override void _Process(double delta)
+    {
+        if (_isPlayerControllerCharacter) return;
+        
+        Position = Position.MoveToward(_targetPosition, 1f);
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         if (!_isPlayerControllerCharacter) return;
@@ -54,7 +63,7 @@ public partial class PlayerController : CharacterBody2D
     [Rpc]
     private void UpdateSynchronizedParameters(Vector2I movementVector, Vector2 position)
     {
-        Position = position;
+        _targetPosition = position;
         UpdateAnimation(movementVector);
     }
 

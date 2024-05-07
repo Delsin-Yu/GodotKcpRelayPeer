@@ -456,13 +456,13 @@ namespace KcpGameServer
             // 在这里我们需要
             // 读取Payload开头4个Byte的接收者本地ID
             // 计算出这个数据包的目标接收者的Kcp连接ID
-            // 然后，将Payload开头4个Byte的接收者本地ID替换成发送者的本地ID
+            // 然后，在用户发送给房主的情况下，将Payload开头4个Byte的接收者本地ID替换成发送者的连接ID
+            // 或者，在房主发送给用户的情况下，将Payload开头4个Byte的接收者本地ID替换成1
             
             // 获得接收者本地ID
             var sendToLocalId = BitConverter.ToInt32(payload[..4]);
 
             int sendToConnectionId;
-            int senderLocalId;
 
             // 如果发送的ID是1，就代表这是用户在发送数据给房主
             if (sendToLocalId == 1)
@@ -478,12 +478,6 @@ namespace KcpGameServer
                         !_hostToSessionMapping.TryGetValue(sendToConnectionId, out var sessionInfo),
                         senderConnectionId,
                         KcpTerminateReason.UnAuthorizedAction)) return;
-                
-                // 获取发送者的本地Id
-                if (DisconnectIfTrue(
-                        !sessionInfo!.ConnectionMap.TryGetLocalId(senderConnectionId, out senderLocalId),
-                        senderConnectionId,
-                        KcpTerminateReason.UnAuthorizedAction)) return;
             }
             // 否则这就是房主在发送数据给用户
             else
@@ -494,19 +488,15 @@ namespace KcpGameServer
                         senderConnectionId,
                         KcpTerminateReason.UnAuthorizedAction)) return;
 
-                // 如果当前房间中不存在房主需要发送给的连接ID，则直接断开房主连接
-                if (DisconnectIfTrue(
-                        !sessionInfo!.ConnectionMap.TryGetConnectionId(sendToLocalId, out sendToConnectionId),
-                        senderConnectionId,
-                        KcpTerminateReason.UnAuthorizedAction)) return;
+                // 如果当前房间中不存在房主需要发送给的连接ID，则不要转发（目标已经断开连接）
+                if (!sessionInfo!.ConnectionMap.TryGetConnectionId(sendToLocalId, out sendToConnectionId)) return;
 
-                // 房主ID是1
-                senderLocalId = 1;
+                senderConnectionId = 1;
             }
 
             Span<byte> redirectedPayload = stackalloc byte[payload.Length];
             payload.CopyTo(redirectedPayload);
-            BitConverter.TryWriteBytes(redirectedPayload, senderLocalId);
+            BitConverter.TryWriteBytes(redirectedPayload, senderConnectionId);
             
             SendPayload(sendToConnectionId, KcpServerMessageType.PayloadRelay, redirectedPayload);
         }
@@ -565,13 +555,19 @@ namespace KcpGameServer
 
             // 告诉连接方成功完成
 
-            Span<byte> buffer = [0, 0, 0, 0];
-            BitConverter.TryWriteBytes(buffer, userLocalId);
+            Span<byte> localIdSpan = [0, 0, 0, 0];
+            BitConverter.TryWriteBytes(localIdSpan, userLocalId);
 
-            SendPayload(connectionId, KcpServerMessageType.Success, buffer);
+            SendPayload(connectionId, KcpServerMessageType.Success, localIdSpan);
+
+            Span<byte> hostMessageSpan = [0, 0, 0, 0, 0, 0, 0, 0];
+            
+            BitConverter.TryWriteBytes(hostMessageSpan, connectionId);
+            
+            localIdSpan.CopyTo(hostMessageSpan[4..]);
 
             // 告诉房主新的成员加入房间
-            SendPayload(hostConnectionId, KcpServerMessageType.ClientConnected, buffer);
+            SendPayload(hostConnectionId, KcpServerMessageType.ClientConnected, hostMessageSpan);
 
             return true;
         }

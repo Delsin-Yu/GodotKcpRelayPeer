@@ -20,12 +20,16 @@ public partial class KcpRelayMultiplayerPeer : IKcpNotificationListener
 
     private const bool USE_HTTPS = false;
     private const string HTTP_HEADER = USE_HTTPS ? "https" : "http";
-    private const string HTTP_MODULE = "kcp-http";
     private const string HTTP_SERVER_ADDRESS = "127.0.0.1";
     private const ushort HTTP_PORT = 9000;
     private const string KCP_SERVER_ADDRESS = "127.0.0.1";
     private const ushort KCP_PORT = 9001;
     
+    // private const string HTTP_SERVER_ADDRESS = "120.76.140.56";
+    // private const ushort HTTP_PORT = 10111;
+    // private const string KCP_SERVER_ADDRESS = "120.76.140.56";
+    // private const ushort KCP_PORT = 10112;
+
     private readonly HttpClient _httpClient;
     private readonly Uri _listUri;
     private readonly Uri _allocateUri;
