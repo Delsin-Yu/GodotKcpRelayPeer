@@ -345,7 +345,7 @@ public partial class Main : Node
     private void DeletePlayer(int networkId)
     {
         if (!_playerControllers.Remove(networkId, out var playerController)) throw new InvalidOperationException();
-        playerController.Free();
+        playerController.QueueFree();
         playerController.Dispose();
     }
 }
